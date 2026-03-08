@@ -41,8 +41,9 @@ def webhook():
         print(f"AI Analizi: {analiz}")
         
         import json
-        temiz = analiz.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-sonuc = json.loads(temiz)
+        import re
+json_match = re.search(r'\{.*\}', analiz, re.DOTALL)
+sonuc = json.loads(json_match.group())
         
         if sonuc["tip"] == "randevu":
             cevap = f"📅 Randevu kaydedildi!\n📝 {sonuc['ozet']}"
