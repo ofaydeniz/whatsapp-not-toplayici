@@ -2,6 +2,8 @@ from flask import Flask, request
 from twilio.twiml.messaging_response import MessagingResponse
 import anthropic
 import os
+import json
+import re
 
 app = Flask(__name__)
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
@@ -13,15 +15,15 @@ def analiz_et(mesaj):
         messages=[{
             "role": "user",
             "content": f"""Aşağıdaki WhatsApp mesajını analiz et ve JSON formatında yanıt ver.
-            
+
 Mesaj: "{mesaj}"
 
 Şu formatta yanıt ver:
 {{
   "tip": "not" veya "randevu" veya "belirsiz",
   "ozet": "kısa özet",
-  "tarih": "varsa tarih (örn: Yarın, 15 Mart, vb) yoksa null",
-  "saat": "varsa saat (örn: 15:00) yoksa null"
+  "tarih": "varsa tarih yoksa null",
+  "saat": "varsa saat yoksa null"
 }}
 
 Sadece JSON döndür, başka hiçbir şey yazma."""
@@ -40,10 +42,8 @@ def webhook():
         analiz = analiz_et(incoming_msg)
         print(f"AI Analizi: {analiz}")
         
-        import json
-        import re
-json_match = re.search(r'\{.*\}', analiz, re.DOTALL)
-sonuc = json.loads(json_match.group())
+        json_match = re.search(r'\{.*\}', analiz, re.DOTALL)
+        sonuc = json.loads(json_match.group())
         
         if sonuc["tip"] == "randevu":
             cevap = f"📅 Randevu kaydedildi!\n📝 {sonuc['ozet']}"
